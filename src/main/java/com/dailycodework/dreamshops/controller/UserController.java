@@ -1,5 +1,4 @@
 package com.dailycodework.dreamshops.controller;
-
 import com.dailycodework.dreamshops.dto.UserDto;
 import com.dailycodework.dreamshops.exceptions.AlreadyExistsException;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
@@ -10,16 +9,19 @@ import com.dailycodework.dreamshops.response.ApiResponse;
 import com.dailycodework.dreamshops.service.user.IUserService;
 import com.dailycodework.dreamshops.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-
+@CrossOrigin("http://localhost:3000")
 @RequiredArgsConstructor
+
 @RestController
 @RequestMapping("${api.prefix}/users")
 public class UserController {
+    @Autowired
     private final IUserService userService;
 
     @GetMapping("/{userId}/user")
@@ -36,9 +38,10 @@ public class UserController {
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> createUser(@RequestBody CreateUserRequest request) {
         try {
+
             User user = userService.createUser(request);
-            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Create User Success!", userDto));
+//            UserDto userDto = userService.convertUserToDto(user);
+            return ResponseEntity.ok(new ApiResponse("Create User Success!", user));
         } catch (AlreadyExistsException e) {
             return ResponseEntity.status(CONFLICT).body(new ApiResponse(e.getMessage(), null));
         }

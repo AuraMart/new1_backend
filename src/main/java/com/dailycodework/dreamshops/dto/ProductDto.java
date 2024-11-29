@@ -9,6 +9,7 @@ import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -20,5 +21,7 @@ public class ProductDto {
     private int inventory;
     private String description;
     private Category category;
-    private List<ImageDto> images;
+    private List<String> imageUrls;
+
+    //private List<ImageDto> images;
 }

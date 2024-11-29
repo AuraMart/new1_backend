@@ -9,6 +9,7 @@ import com.dailycodework.dreamshops.request.CreateUserRequest;
 import com.dailycodework.dreamshops.request.UserUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -27,16 +28,18 @@ public class UserService implements IUserService {
 
     @Override
     public User createUser(CreateUserRequest request) {
-        return  Optional.of(request)
-                .filter(user -> !userRepository.existsByEmail(request.getEmail()))
-                .map(req -> {
-                    User user = new User();
-                    user.setEmail(request.getEmail());
-                    user.setPassword(request.getPassword());
-                    user.setFirstName(request.getFirstName());
-                    user.setLastName(request.getLastName());
-                    return  userRepository.save(user);
-                }) .orElseThrow(() -> new AlreadyExistsException("Oops!" +request.getEmail() +" already exists!"));
+        // Directly instantiate BCryptPasswordEncoder
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        // Create a new user
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // Encode the password
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+
+        // Save the user
+        return userRepository.save(user);
     }
 
     @Override

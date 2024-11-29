@@ -52,6 +52,23 @@ public class ProductController {
         }
     }
 
+
+//@PostMapping("/addproduct")
+//public ResponseEntity<String> addProduct(@RequestBody ProductDTO productDTO) {
+//    try {
+//        productService.addProduct(productDTO);
+//        return ResponseEntity.ok("Product added successfully!");
+//    } catch (Exception e) {
+//        return ResponseEntity.status(500).body("Failed to add product");
+//    }
+//}
+
+//    @PostMapping("/add")
+//    public ResponseEntity<Product> addProduct(@RequestBody AddProductRequest request) {
+//        Product createdProduct = productService.addProduct(request);
+//        return ResponseEntity.ok(createdProduct);
+//    }
+
     @PutMapping("/product/{productId}/update")
     public  ResponseEntity<ApiResponse> updateProduct(@RequestBody ProductUpdateRequest request, @PathVariable Long productId) {
         try {
@@ -129,7 +146,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product/{category}/all/products")
+    @GetMapping("/{category}")
     public ResponseEntity<ApiResponse> findProductByCategory(@PathVariable String category) {
         try {
             List<Product> products = productService.getProductsByCategory(category);

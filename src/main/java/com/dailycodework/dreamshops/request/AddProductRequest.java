@@ -1,20 +1,24 @@
 package com.dailycodework.dreamshops.request;
 
 import com.dailycodework.dreamshops.model.Category;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class AddProductRequest {
-    private Long id;
     private String name;
     private String brand;
     private BigDecimal price;
     private int inventory;
     private String description;
+    private LocalDate date;
+    private String color;
+    private String size;
     private Category category;
+    private List<String> imageUrls; // Image URLs
 }
