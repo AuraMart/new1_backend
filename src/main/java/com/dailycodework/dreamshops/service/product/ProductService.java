@@ -352,7 +352,6 @@ public class ProductService implements IProductService {
     @Override
     public ProductDto convertToDto(Product product) {
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
-
         // Fetch and map image URLs
         List<String> imageUrls = product.getImages().stream()
                 .map(Image::getUrl) // Assuming `Image` has a `getUrl()` method
