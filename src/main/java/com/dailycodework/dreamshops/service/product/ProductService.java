@@ -166,6 +166,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import com.dailycodework.dreamshops.service.category.CategoryService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -360,6 +361,13 @@ public class ProductService implements IProductService {
 
         return productDto;
     }
+
+    // Fetch top 10 newest products
+    public List<Product> getTop8NewArrivals() {
+        return productRepository.findTop8ByOrderByDateDesc();
+    }
+
+    
 }
 
 
