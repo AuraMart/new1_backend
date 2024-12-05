@@ -1,5 +1,15 @@
 package com.dailycodework.dreamshops.service.order;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dailycodework.dreamshops.dto.OrderDto;
 import com.dailycodework.dreamshops.enums.OrderStatus;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
@@ -7,18 +17,14 @@ import com.dailycodework.dreamshops.model.Cart;
 import com.dailycodework.dreamshops.model.Order;
 import com.dailycodework.dreamshops.model.OrderItem;
 import com.dailycodework.dreamshops.model.Product;
+import com.dailycodework.dreamshops.model.User;
 import com.dailycodework.dreamshops.repository.OrderRepository;
 import com.dailycodework.dreamshops.repository.ProductRepository;
+import com.dailycodework.dreamshops.repository.UserRepository;
+import com.dailycodework.dreamshops.request.CreateBuyNowOrderRequest;
 import com.dailycodework.dreamshops.service.cart.CartService;
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +33,7 @@ public class OrderService implements IOrderService {
     private final ProductRepository productRepository;
     private final CartService cartService;
     private final ModelMapper modelMapper;
+    private final UserRepository userRepository;
 
 
     @Transactional
@@ -88,4 +95,47 @@ public class OrderService implements IOrderService {
     private OrderDto convertToDto(Order order) {
         return modelMapper.map(order, OrderDto.class);
     }
+
+    //buy now order
+
+    @Transactional
+    @Override
+    public Order placeOrderBuyNow(Long productId, CreateBuyNowOrderRequest createOrderRequest) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        User user = userRepository.findById(createOrderRequest.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Order order = createOrder(user, product, createOrderRequest);
+
+        OrderItem orderItem = new OrderItem(order, product, createOrderRequest.getQuantity(), createOrderRequest.getPrice());
+        order.getOrderItems().add(orderItem);
+
+        order.setTotalAmount(calculateTotalAmountBuy(order.getOrderItems()));
+
+        Order savedOrder = orderRepository.save(order);
+
+        product.setInventory(product.getInventory() - createOrderRequest.getQuantity());
+        productRepository.save(product);
+
+        return savedOrder;
+    }
+
+    private Order createOrder(User user, Product product, CreateBuyNowOrderRequest createOrderRequest) {
+        Order order = new Order();
+        order.setUser(user);
+        order.setOrderStatus(OrderStatus.PENDING);
+        order.setOrderDate(LocalDate.now());
+        return order;
+    }
+
+    private BigDecimal calculateTotalAmountBuy(Set<OrderItem> orderItemSet) {
+        return orderItemSet.stream()
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    
 }
