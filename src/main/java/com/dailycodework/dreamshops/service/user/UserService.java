@@ -11,4 +11,8 @@ public interface UserService {
     AuthenticationResponse userSignIn(UserSignIn user);
 
     UserDetailsService userDetailsService();
+
+    AuthenticationResponse adminSignIn(UserSignIn admin);
+
+    AuthenticationResponse adminSignUp(UserSignUp admin);
 }

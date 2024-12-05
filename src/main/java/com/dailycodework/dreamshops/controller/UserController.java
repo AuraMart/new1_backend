@@ -70,6 +70,9 @@
 package com.dailycodework.dreamshops.controller;
 
 
+import com.dailycodework.dreamshops.model.User;
+import com.dailycodework.dreamshops.repository.UserRepository;
+import com.dailycodework.dreamshops.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import com.dailycodework.dreamshops.dto.UserSignUp;
 import com.dailycodework.dreamshops.dto.UserSignIn;
@@ -77,6 +80,8 @@ import com.dailycodework.dreamshops.response.AuthenticationResponse;
 import com.dailycodework.dreamshops.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -86,20 +91,40 @@ public class UserController {
 
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
 
     @PostMapping("/sign-up")
-    public ResponseEntity<AuthenticationResponse> useerSignUp(@RequestBody UserSignUp user) {
+    public ResponseEntity<ApiResponse> useerSignUp(@RequestBody UserSignUp user) {
 
 
-        return ResponseEntity.ok(userService.userSignUp(user));
+        AuthenticationResponse response = userService.userSignUp(user);
+
+        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
+        return ResponseEntity.ok(new ApiResponse(response.getToken(),existingUser.get().getId()));
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<AuthenticationResponse> userSignIn(@RequestBody UserSignIn user) {
+    public ResponseEntity<ApiResponse> userSignIn(@RequestBody UserSignIn user) {
+//        return ResponseEntity.ok(userService.userSignIn(user));
 
 
-        return ResponseEntity.ok(userService.userSignIn(user));
+          Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
+
+          AuthenticationResponse response = userService.userSignIn(user);
+          return ResponseEntity.ok(new ApiResponse(response.getToken(),existingUser.get().getId()));
 
     }
+
+    @PostMapping("/admin/sign-up")
+    public ResponseEntity<AuthenticationResponse> adminSignUp(@RequestBody UserSignUp admin) {
+        return ResponseEntity.ok(userService.adminSignUp(admin));
+    }
+
+    @PostMapping("/admin/sign-in")
+    public ResponseEntity<AuthenticationResponse> adminSignIn(@RequestBody UserSignIn admin) {
+        return ResponseEntity.ok(userService.adminSignIn(admin));
+    }
+
+
 }
