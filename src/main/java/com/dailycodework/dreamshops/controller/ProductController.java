@@ -1,6 +1,7 @@
 package com.dailycodework.dreamshops.controller;
 
 import com.dailycodework.dreamshops.dto.ProductDto;
+import com.dailycodework.dreamshops.dto.SingleProductDto;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Product;
 import com.dailycodework.dreamshops.request.AddProductRequest;
@@ -175,8 +176,14 @@ public class ProductController {
     }
 
     @GetMapping("/new-arrivals")
-    public List<Product> getTop8NewArrivals() {
-        return productService.getTop8NewArrivals();
+    public ResponseEntity<ApiResponse> getNewArrivals() {
+        try{
+            List<Product> products = productService.getTop8NewArrivals();
+            List<SingleProductDto> convertedProducts = productService.getConvertedSingleProducts(products);
+            return ResponseEntity.ok(new ApiResponse("success", convertedProducts));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
+        }
     }
 
 }
