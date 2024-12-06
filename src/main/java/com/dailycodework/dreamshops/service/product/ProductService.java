@@ -152,7 +152,6 @@
 package com.dailycodework.dreamshops.service.product;
 
 import com.dailycodework.dreamshops.dto.ProductDto;
-import com.dailycodework.dreamshops.dto.SingleProductDto;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Category;
 import com.dailycodework.dreamshops.model.Image;
@@ -161,6 +160,7 @@ import com.dailycodework.dreamshops.repository.CategoryRepository;
 import com.dailycodework.dreamshops.repository.ImageRepository;
 import com.dailycodework.dreamshops.repository.ProductRepository;
 import com.dailycodework.dreamshops.request.AddProductRequest;
+import com.dailycodework.dreamshops.request.ProductSearchRequest;
 import com.dailycodework.dreamshops.request.ProductUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -174,37 +174,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService implements IProductService {
+public  class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
 
     private final CategoryService categoryService;
-
-
-    //        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
-//                .orElseGet(() -> {
-//                    Category newCategory = new Category(request.getCategory().getName());
-//                    return categoryRepository.save(newCategory);
-//                });
-//        request.setCategory(category);
-//        return productRepository.save(createProduct(request, category));
-//    }
-//
-//    private Product createProduct(AddProductRequest request, Category category) {
-//        return new Product(
-//                request.getName(),
-//                request.getBrand(),
-//                request.getPrice(),
-//                request.getInventory(),
-//                request.getDescription(),
-//                request.getDate(),
-//                request.getColor(),
-//                request.getSize(),
-//                category
-//        );
-//    }
 
     @Override
     public Product addProduct(AddProductRequest request) {
@@ -215,11 +191,6 @@ public class ProductService implements IProductService {
                     Category newCategory = new Category(request.getCategory().getName());
                     return categoryRepository.save(newCategory);
                 });
-
-        //categoryService.addCategory(request.getCategory());
-        // Create the Product
-//        Product product = createProduct(request, category);
-        //request.setCategory(category);
 
         Product product = new Product();
         product.setName(request.getName());
@@ -233,14 +204,7 @@ public class ProductService implements IProductService {
         product.setColor((request.getColor()));
         //return productRepository.save(createProduct(request, category));
 
-        //        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
-//                .orElseGet(() -> {
-//                    Category newCategory = new Category(request.getCategory().getName());
-//                    return categoryRepository.save(newCategory);
-//                });
-//        request.setCategory(category);
-//        return productRepository.save(createProduct(request, category));
-//    }
+
         // Save the Product
         System.out.println(product.getName());
         Product savedProduct = productRepository.save(product);
@@ -363,32 +327,6 @@ public class ProductService implements IProductService {
         return productDto;
     }
 
-    // Fetch top 10 newest products
-    public List<Product> getTop8NewArrivals() {
-        return productRepository.findTop8ByOrderByDateDesc();
-    }
-
-    @Override
-    public List<SingleProductDto> getConvertedSingleProducts(List<Product> products) {
-        return products.stream().map(this::convertToSingleDto).toList();
-    }
-
-    @Override
-    public SingleProductDto convertToSingleDto(Product product) {
-        SingleProductDto productDto = modelMapper.map(product, SingleProductDto.class);
-
-        // Extract the first image URL
-        String firstImageUrl = product.getImages().stream()
-                .map(Image::getUrl) // Map Image objects to their URLs
-                .findFirst()        // Get the first URL, if present
-                .orElse(null);      // Return null if no images are present
-    
-        // Set the first image URL to the DTO
-        productDto.setImageUrl(firstImageUrl);
-    
-        return productDto;
-    }
-    
 }
 
 

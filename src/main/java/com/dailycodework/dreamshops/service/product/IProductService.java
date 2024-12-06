@@ -1,11 +1,12 @@
 package com.dailycodework.dreamshops.service.product;
 import com.dailycodework.dreamshops.dto.ProductDto;
-import com.dailycodework.dreamshops.dto.SingleProductDto;
 import com.dailycodework.dreamshops.model.Product;
 import com.dailycodework.dreamshops.request.AddProductRequest;
+import com.dailycodework.dreamshops.request.ProductSearchRequest;
 import com.dailycodework.dreamshops.request.ProductUpdateRequest;
 
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface IProductService {
@@ -25,8 +26,4 @@ public interface IProductService {
 
     ProductDto convertToDto(Product product);
 
-    List<Product> getTop8NewArrivals();
-    List<SingleProductDto> getConvertedSingleProducts(List<Product> products);
-    SingleProductDto convertToSingleDto(Product product);
-    
 }
