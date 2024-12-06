@@ -1,8 +1,9 @@
 package com.dailycodework.dreamshops.service.cart;
 
-import com.dailycodework.dreamshops.model.Cart;
-
 import java.math.BigDecimal;
+
+import com.dailycodework.dreamshops.dto.CartDto;
+import com.dailycodework.dreamshops.model.Cart;
 
 public interface ICartService {
     Cart getCart(Long id);
@@ -12,4 +13,5 @@ public interface ICartService {
     Long initializeNewCart();
 
     Cart getCartByUserId(Long userId);
+    CartDto getCartIdByUserId(Long userId);
 }
