@@ -1,11 +1,13 @@
 package com.dailycodework.dreamshops.service.order;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.dailycodework.dreamshops.dto.AdminDashboardStatisticsDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,6 +98,38 @@ public class OrderService implements IOrderService {
         return modelMapper.map(order, OrderDto.class);
     }
 
+    @Override
+    public List<OrderDto> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return  orders.stream().map(this :: convertToDto).toList();
+    }
+
+    @Override
+    public AdminDashboardStatisticsDto getDashboardStatistics() {
+        AdminDashboardStatisticsDto statisticsDto = new AdminDashboardStatisticsDto();
+
+        statisticsDto.setTotalUsers(orderRepository.countTotalUsers());
+        statisticsDto.setTotalOrders(orderRepository.countTotalOrders());
+
+        BigDecimal totalRevenue = orderRepository.calculateTotalRevenue();
+        statisticsDto.setTotalRevenue(totalRevenue != null ?
+                totalRevenue.setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+
+        statisticsDto.setPendingOrders(
+                orderRepository.countOrdersByStatus(OrderStatus.PENDING));
+
+        statisticsDto.setCompletedOrders(
+                orderRepository.countOrdersByStatus(OrderStatus.DELIVERED));
+
+        statisticsDto.setProductCount(orderRepository.countTotalProducts());
+
+        BigDecimal averageOrderValue = orderRepository.calculateAverageOrderValue();
+        statisticsDto.setAverageOrderValue(averageOrderValue != null ?
+                averageOrderValue.setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+
+        return statisticsDto;
+    }
+
     //buy now order
 
     @Transactional
@@ -122,6 +156,8 @@ public class OrderService implements IOrderService {
 
         return savedOrder;
     }
+
+
 
     private Order createOrder(User user, Product product, CreateBuyNowOrderRequest createOrderRequest) {
         Order order = new Order();

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dailycodework.dreamshops.dto.AdminDashboardStatisticsDto;
 import com.dailycodework.dreamshops.dto.OrderDto;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Order;
@@ -67,5 +68,20 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(new ApiResponse("Failed to place order", null));
         }
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<ApiResponse> getAllOrders() {
+        try{
+            List<OrderDto> order = orderService.getAllOrders();
+            return ResponseEntity.ok(new ApiResponse("Item Order Success!", order));
+        }catch(ResourceNotFoundException e){
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse("Oops!", e.getMessage()));
+        }
+    }
+    @GetMapping("/statistics")
+    public ResponseEntity<AdminDashboardStatisticsDto> getDashboardStatistics() {
+        AdminDashboardStatisticsDto statistics = orderService.getDashboardStatistics();
+        return ResponseEntity.ok(statistics);
     }
 }
