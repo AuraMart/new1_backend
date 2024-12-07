@@ -9,8 +9,10 @@ import com.dailycodework.dreamshops.request.ProductUpdateRequest;
 import com.dailycodework.dreamshops.response.ApiResponse;
 import com.dailycodework.dreamshops.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -21,6 +23,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RestController
 @RequestMapping("${api.prefix}/products")
 public class ProductController {
+
+    @Autowired
     private final IProductService productService;
 
     @GetMapping("/all")
@@ -160,6 +164,20 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<ApiResponse> findProductByCategoryId(@PathVariable Integer categoryId) {
+        try {
+            List<Product> products = productService.getProductsByCategoryId(categoryId);
+            if (products.isEmpty()) {
+                return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("No products found ", null));
+            }
+            List<ProductDto> convertedProducts = productService.getConvertedProducts(products);
+            return  ResponseEntity.ok(new ApiResponse("success", convertedProducts));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/product/count/by-brand/and-name")
     public ResponseEntity<ApiResponse> countProductsByBrandAndName(@RequestParam String brand, @RequestParam String name) {
         try {
@@ -169,6 +187,24 @@ public class ProductController {
             return ResponseEntity.ok(new ApiResponse(e.getMessage(), null));
         }
     }
+
+    @GetMapping("/product/filter")
+    public ResponseEntity<ApiResponse> filterProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String color) {
+        try {
+            List<Product> filteredProducts = productService.filterProducts(category, brand, minPrice, maxPrice, size, color);
+            List<ProductDto> convertedProducts = productService.getConvertedProducts(filteredProducts);
+            return ResponseEntity.ok(new ApiResponse("success", convertedProducts));
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
+        }
+    }
+
 
 
 }

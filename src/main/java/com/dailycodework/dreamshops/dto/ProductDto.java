@@ -22,6 +22,8 @@ public class ProductDto {
     private String description;
     private Category category;
     private List<String> imageUrls;
+    private String color;
+    private String size;
 
     //private List<ImageDto> images;
 }
