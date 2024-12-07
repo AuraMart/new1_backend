@@ -1,5 +1,6 @@
 package com.dailycodework.dreamshops.service.product;
 import com.dailycodework.dreamshops.dto.ProductDto;
+import com.dailycodework.dreamshops.dto.SingleProductDto;
 import com.dailycodework.dreamshops.model.Product;
 import com.dailycodework.dreamshops.request.AddProductRequest;
 import com.dailycodework.dreamshops.request.ProductUpdateRequest;
@@ -26,4 +27,9 @@ public interface IProductService {
     List<ProductDto> getConvertedProducts(List<Product> products);
 
     ProductDto convertToDto(Product product);
+
+    List<Product> getTop8NewArrivals();
+    List<SingleProductDto> getConvertedSingleProducts(List<Product> products);
+    SingleProductDto convertToSingleDto(Product product);
+    
 }

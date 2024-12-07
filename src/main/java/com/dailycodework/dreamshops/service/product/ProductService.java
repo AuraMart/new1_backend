@@ -1,6 +1,7 @@
 package com.dailycodework.dreamshops.service.product;
 
 import com.dailycodework.dreamshops.dto.ProductDto;
+import com.dailycodework.dreamshops.dto.SingleProductDto;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Category;
 import com.dailycodework.dreamshops.model.Image;
@@ -17,9 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -181,6 +182,34 @@ public class ProductService implements IProductService {
 
         return productDto;
     }
+
+    // Fetch top 10 newest products
+    public List<Product> getTop8NewArrivals() {
+        return productRepository.findTop8ByOrderByDateDesc();
+    }
+
+    @Override
+    public List<SingleProductDto> getConvertedSingleProducts(List<Product> products) {
+        return products.stream().map(this::convertToSingleDto).toList();
+    }
+
+    @Override
+    public SingleProductDto convertToSingleDto(Product product) {
+        SingleProductDto productDto = modelMapper.map(product, SingleProductDto.class);
+
+        // Extract the first image URL
+        String firstImageUrl = product.getImages().stream()
+                .map(Image::getUrl) // Map Image objects to their URLs
+                .findFirst()        // Get the first URL, if present
+                .orElse(null);      // Return null if no images are present
+    
+        // Set the first image URL to the DTO
+        productDto.setImageUrl(firstImageUrl);
+    
+        return productDto;
+    }
+    
+}
 
     @Override
     @Transactional(readOnly = true)
