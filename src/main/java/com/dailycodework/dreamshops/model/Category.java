@@ -17,13 +17,18 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
 
+    private String name;
+    private String slug;
 
     @JsonIgnore
     @OneToMany(mappedBy = "category")
     private List<Product> products;
 
+    public Category(String name, String slug) {
+        this.name = name;
+        this.slug = slug;
+    }
     public Category(String name) {
         this.name = name;
     }
