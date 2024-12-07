@@ -209,8 +209,6 @@ public class ProductService implements IProductService {
         return productDto;
     }
     
-}
-
     @Override
     @Transactional(readOnly = true)
     public List<Product> filterProducts(String category, String brand, BigDecimal minPrice, BigDecimal maxPrice, String size, String color) {
