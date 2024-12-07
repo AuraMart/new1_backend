@@ -111,6 +111,11 @@ public class UserController {
 
           Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
 
+          if(existingUser.get().getRole().toString().equals("ADMIN")){
+
+              AuthenticationResponse response = userService.userSignIn(user);
+              return ResponseEntity.ok(new ApiResponse(response.getToken(),existingUser.get().getRole()));
+          }
           AuthenticationResponse response = userService.userSignIn(user);
           return ResponseEntity.ok(new ApiResponse(response.getToken(),existingUser.get().getId()));
 

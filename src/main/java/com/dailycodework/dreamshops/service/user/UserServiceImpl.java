@@ -11,6 +11,7 @@ import com.dailycodework.dreamshops.service.JwtService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,10 +54,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthenticationResponse userSignIn(UserSignIn user) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getEmail(),
-                        user.getPassword()));
+
+       try{authenticationManager.authenticate(
+               new UsernamePasswordAuthenticationToken(
+                       user.getEmail(),
+                       user.getPassword()));
+       } catch (BadCredentialsException e){
+
+           throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid email or password");
+       }
 
         var userEntity = userRepository.findByEmail(user.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
