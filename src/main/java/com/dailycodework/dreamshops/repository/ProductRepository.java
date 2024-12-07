@@ -33,7 +33,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByName(String name);
     List<Product> findByBrandAndName(String brand, String name);
     Long countByBrandAndName(String brand, String name);
-
+    List<Product> findByCategoryId(Integer categoryId);
     // Get products sorted by date (newest first)
     // List<Product> findTop8ByOrderByDateDesc();
     List<Product> findTop8ByOrderByDateDesc();

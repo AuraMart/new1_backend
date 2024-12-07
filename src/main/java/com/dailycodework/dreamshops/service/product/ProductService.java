@@ -1,154 +1,3 @@
-//package com.dailycodework.dreamshops.service.product;
-//
-//import com.dailycodework.dreamshops.dto.ImageDto;
-//import com.dailycodework.dreamshops.dto.ProductDto;
-//import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
-//import com.dailycodework.dreamshops.model.Category;
-//import com.dailycodework.dreamshops.model.Image;
-//import com.dailycodework.dreamshops.model.Product;
-//import com.dailycodework.dreamshops.repository.CategoryRepository;
-//import com.dailycodework.dreamshops.repository.ImageRepository;
-//import com.dailycodework.dreamshops.repository.ProductRepository;
-//import com.dailycodework.dreamshops.request.AddProductRequest;
-//import com.dailycodework.dreamshops.request.ProductUpdateRequest;
-//import lombok.RequiredArgsConstructor;
-//import org.modelmapper.ModelMapper;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.stream.Collectors;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class ProductService implements IProductService {
-//    private final ProductRepository productRepository;
-//    private final CategoryRepository categoryRepository;
-//    private final ModelMapper modelMapper;
-//    private final ImageRepository imageRepository;
-//
-//    @Override
-//    public Product addProduct(AddProductRequest request) {
-//        // check if the category is found in the DB
-//        // If Yes, set it as the new product category
-//        // If No, the save it as a new category
-//        // The set as the new product category.
-//
-//        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
-//                .orElseGet(() -> {
-//                    Category newCategory = new Category(request.getCategory().getName());
-//                    return categoryRepository.save(newCategory);
-//                });
-//        request.setCategory(category);
-//        return productRepository.save(createProduct(request, category));
-//    }
-//
-//    private Product createProduct(AddProductRequest request, Category category) {
-//        return new Product(
-//                request.getName(),
-//                request.getBrand(),
-//                request.getPrice(),
-//                request.getInventory(),
-//                request.getDescription(),
-//                request.getDate(),
-//                request.getColor(),
-//                request.getSize(),
-//                category
-//        );
-//    }
-//
-//
-//    @Override
-//    public Product getProductById(Long id) {
-//        return productRepository.findById(id)
-//                .orElseThrow(()-> new ResourceNotFoundException("Product not found!"));
-//    }
-//
-//    @Override
-//    public void deleteProductById(Long id) {
-//        productRepository.findById(id)
-//                .ifPresentOrElse(productRepository::delete,
-//                        () -> {throw new ResourceNotFoundException("Product not found!");});
-//    }
-//
-//    @Override
-//    public Product updateProduct(ProductUpdateRequest request, Long productId) {
-//        return productRepository.findById(productId)
-//                .map(existingProduct -> updateExistingProduct(existingProduct,request))
-//                .map(productRepository :: save)
-//                .orElseThrow(()-> new ResourceNotFoundException("Product not found!"));
-//    }
-//
-//    private Product updateExistingProduct(Product existingProduct, ProductUpdateRequest request) {
-//        existingProduct.setName(request.getName());
-//        existingProduct.setBrand(request.getBrand());
-//        existingProduct.setPrice(request.getPrice());
-//        existingProduct.setInventory(request.getInventory());
-//        existingProduct.setDescription(request.getDescription());
-//
-//        Category category = categoryRepository.findByName(request.getCategory().getName());
-//        existingProduct.setCategory(category);
-//        return  existingProduct;
-//
-//    }
-//
-//    @Override
-//    public List<Product> getAllProducts() {
-//        return productRepository.findAll();
-//    }
-//
-//    @Override
-//    public List<Product> getProductsByCategory(String category) {
-//        return productRepository.findByCategoryName(category);
-//    }
-//
-//    @Override
-//    public List<Product> getProductsByBrand(String brand) {
-//        return productRepository.findByBrand(brand);
-//    }
-//
-//    @Override
-//    public List<Product> getProductsByCategoryAndBrand(String category, String brand) {
-//        return productRepository.findByCategoryNameAndBrand(category, brand);
-//    }
-//
-//    @Override
-//    public List<Product> getProductsByName(String name) {
-//        return productRepository.findByName(name);
-//    }
-//
-//    @Override
-//    public List<Product> getProductsByBrandAndName(String brand, String name) {
-//        return productRepository.findByBrandAndName(brand, name);
-//    }
-//
-//    @Override
-//    public Long countProductsByBrandAndName(String brand, String name) {
-//        return productRepository.countByBrandAndName(brand, name);
-//    }
-//
-//    @Override
-//    public List<ProductDto> getConvertedProducts(List<Product> products) {
-//      return products.stream().map(this::convertToDto).toList();
-//    }
-//
-//    @Override
-//    public ProductDto convertToDto(Product product) {
-//        ProductDto productDto = modelMapper.map(product, ProductDto.class);
-////        List<Image> images = imageRepository.findByProductId(product.getId());
-////        List<ImageDto> imageDtos = images.stream()
-////                .map(image -> modelMapper.map(image, ImageDto.class))
-////                .toList();
-////        productDto.setImages(imageDtos);
-//        List<String> imageUrls = product.getImageUrls().stream().map(Image::getImageUrl).collect(Collectors.toList());
-//        productDto.setImageUrls(imageUrls);
-//        return productDto;
-//    }
-//}
-
-
-//new code .................................................................
-
 package com.dailycodework.dreamshops.service.product;
 
 import com.dailycodework.dreamshops.dto.ProductDto;
@@ -162,11 +11,15 @@ import com.dailycodework.dreamshops.repository.ImageRepository;
 import com.dailycodework.dreamshops.repository.ProductRepository;
 import com.dailycodework.dreamshops.request.AddProductRequest;
 import com.dailycodework.dreamshops.request.ProductUpdateRequest;
+import com.dailycodework.dreamshops.service.category.CategoryService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import com.dailycodework.dreamshops.service.category.CategoryService;
-
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -179,76 +32,38 @@ public class ProductService implements IProductService {
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
-
+    private final EntityManager entityManager;
     private final CategoryService categoryService;
 
-
-    //        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
-//                .orElseGet(() -> {
-//                    Category newCategory = new Category(request.getCategory().getName());
-//                    return categoryRepository.save(newCategory);
-//                });
-//        request.setCategory(category);
-//        return productRepository.save(createProduct(request, category));
-//    }
-//
-//    private Product createProduct(AddProductRequest request, Category category) {
-//        return new Product(
-//                request.getName(),
-//                request.getBrand(),
-//                request.getPrice(),
-//                request.getInventory(),
-//                request.getDescription(),
-//                request.getDate(),
-//                request.getColor(),
-//                request.getSize(),
-//                category
-//        );
-//    }
-
     @Override
+    @Transactional
     public Product addProduct(AddProductRequest request) {
-        // Check if the category exists or create a new one
-
+        // Find or create category
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                 .orElseGet(() -> {
                     Category newCategory = new Category(request.getCategory().getName());
                     return categoryRepository.save(newCategory);
                 });
 
-        //categoryService.addCategory(request.getCategory());
-        // Create the Product
-//        Product product = createProduct(request, category);
-        //request.setCategory(category);
-
+        // Create Product
         Product product = new Product();
         product.setName(request.getName());
         product.setDate(request.getDate());
         product.setDescription(request.getDescription());
         product.setSize(request.getSize());
         product.setBrand(request.getBrand());
-        product.setCategory(request.getCategory());
         product.setPrice(request.getPrice());
         product.setInventory(request.getInventory());
-        product.setColor((request.getColor()));
-        //return productRepository.save(createProduct(request, category));
+        product.setColor(request.getColor());
+        product.setCategory(category);
 
-        //        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
-//                .orElseGet(() -> {
-//                    Category newCategory = new Category(request.getCategory().getName());
-//                    return categoryRepository.save(newCategory);
-//                });
-//        request.setCategory(category);
-//        return productRepository.save(createProduct(request, category));
-//    }
-        // Save the Product
-        System.out.println(product.getName());
+        // Save Product
         Product savedProduct = productRepository.save(product);
 
         // Handle Image URLs
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
             List<Image> images = request.getImageUrls().stream()
-                    .map(url -> new Image(url, savedProduct)) // Assuming `Image` has a constructor `Image(String url, Product product)`
+                    .map(url -> new Image(url, savedProduct))
                     .collect(Collectors.toList());
             imageRepository.saveAll(images);
             savedProduct.setImages(images);
@@ -257,36 +72,25 @@ public class ProductService implements IProductService {
         return productRepository.save(savedProduct);
     }
 
-    private Product createProduct(AddProductRequest request, Category category) {
-        return new Product(
-                request.getName(),
-                request.getBrand(),
-                request.getPrice(),
-                request.getInventory(),
-                request.getDescription(),
-                request.getDate(),
-                request.getColor(),
-                request.getSize(),
-                category
-        );
-    }
-
     @Override
+    @Transactional(readOnly = true)
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
     }
 
     @Override
+    @Transactional
     public void deleteProductById(Long id) {
         productRepository.findById(id)
-                .ifPresentOrElse(productRepository::delete,
-                        () -> {
-                            throw new ResourceNotFoundException("Product not found!");
-                        });
+                .ifPresentOrElse(
+                        productRepository::delete,
+                        () -> { throw new ResourceNotFoundException("Product not found!"); }
+                );
     }
 
     @Override
+    @Transactional
     public Product updateProduct(ProductUpdateRequest request, Long productId) {
         return productRepository.findById(productId)
                 .map(existingProduct -> updateExistingProduct(existingProduct, request))
@@ -312,52 +116,68 @@ public class ProductService implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByCategory(String category) {
         return productRepository.findByCategoryName(category);
     }
 
+//    @Override
+    @Transactional(readOnly = true)
+    public List<Product> getProductsByCategoryId(Integer category) {
+        return productRepository.findByCategoryId(category);
+    }
+
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByBrand(String brand) {
         return productRepository.findByBrand(brand);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByCategoryAndBrand(String category, String brand) {
         return productRepository.findByCategoryNameAndBrand(category, brand);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByName(String name) {
         return productRepository.findByName(name);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByBrandAndName(String brand, String name) {
         return productRepository.findByBrandAndName(brand, name);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Long countProductsByBrandAndName(String brand, String name) {
         return productRepository.countByBrandAndName(brand, name);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> getConvertedProducts(List<Product> products) {
-        return products.stream().map(this::convertToDto).toList();
+        return products.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductDto convertToDto(Product product) {
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
+
         // Fetch and map image URLs
-        List<String> imageUrls = product.getImages().stream()
-                .map(Image::getUrl) // Assuming `Image` has a `getUrl()` method
-                .collect(Collectors.toList());
+        List<String> imageUrls = product.getImages() != null
+                ? product.getImages().stream().map(Image::getUrl).collect(Collectors.toList())
+                : List.of();
         productDto.setImageUrls(imageUrls);
 
         return productDto;
@@ -389,8 +209,35 @@ public class ProductService implements IProductService {
         return productDto;
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> filterProducts(String category, String brand, BigDecimal minPrice, BigDecimal maxPrice, String size, String color) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Product> query = cb.createQuery(Product.class);
+        Root<Product> product = query.from(Product.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (category != null) {
+            predicates.add(cb.equal(product.get("category").get("name"), category));
+        }
+        if (brand != null) {
+            predicates.add(cb.equal(product.get("brand"), brand));
+        }
+        if (minPrice != null) {
+            predicates.add(cb.greaterThanOrEqualTo(product.get("price"), minPrice));
+        }
+        if (maxPrice != null) {
+            predicates.add(cb.lessThanOrEqualTo(product.get("price"), maxPrice));
+        }
+        if (size != null) {
+            predicates.add(cb.equal(product.get("size"), size));
+        }
+        if (color != null) {
+            predicates.add(cb.equal(product.get("color"), color));
+        }
+
+        query.select(product).where(cb.and(predicates.toArray(new Predicate[0])));
+        return entityManager.createQuery(query).getResultList();
+    }
 }
-
-
-
-
