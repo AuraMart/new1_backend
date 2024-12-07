@@ -110,7 +110,7 @@ class UserControllerTest {
         ResponseEntity<ApiResponse> response = userController.updateUser(request, userId);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Update User Success!", response.getBody().getMessage());
+        assertEquals("Update User Successul!", response.getBody().getMessage());
         assertEquals(userDto, response.getBody().getData());
     }
 
