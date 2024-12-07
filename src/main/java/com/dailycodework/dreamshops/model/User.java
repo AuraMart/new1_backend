@@ -2,12 +2,12 @@ package com.dailycodework.dreamshops.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.NaturalId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
+import org.hibernate.annotations.NaturalId;
 
 @Getter
 @Setter
@@ -34,7 +34,6 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -71,4 +70,11 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments; 
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private WishList wishlist;
+
 }

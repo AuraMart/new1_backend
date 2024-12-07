@@ -1,15 +1,18 @@
 package com.dailycodework.dreamshops.service.cart;
 
+import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dailycodework.dreamshops.dto.CartDto;
 import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Cart;
 import com.dailycodework.dreamshops.repository.CartItemRepository;
 import com.dailycodework.dreamshops.repository.CartRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +59,16 @@ public class CartService implements ICartService{
     @Override
     public Cart getCartByUserId(Long userId) {
         return cartRepository.findByUserId(userId);
+    }
+
+    @Override
+    public CartDto getCartIdByUserId(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId);
+    
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart not found for user ID: " + userId);
+        }
+    
+        return new CartDto(cart.getId(),userId, cart.getTotalAmount().doubleValue());
     }
 }

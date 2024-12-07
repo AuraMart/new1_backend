@@ -1,7 +1,5 @@
 package com.dailycodework.dreamshops.model;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -22,29 +20,19 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class CartItem {
+public class WishListItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private int quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal totalPrice;
-
+    
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-    
+
     @JsonBackReference
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "cart_id")
-    private Cart cart;
-
-    public void setTotalPrice() {
-        this.totalPrice = this.unitPrice.multiply(new BigDecimal(quantity));
-
-    }
-
-    
+    @JoinColumn(name = "wishlist_id")
+    private WishList wishlist;
 }
