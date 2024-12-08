@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -74,6 +73,12 @@ public class ProductService implements IProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Product> searchProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
@@ -85,8 +90,9 @@ public class ProductService implements IProductService {
         productRepository.findById(id)
                 .ifPresentOrElse(
                         productRepository::delete,
-                        () -> { throw new ResourceNotFoundException("Product not found!"); }
-                );
+                        () -> {
+                            throw new ResourceNotFoundException("Product not found!");
+                        });
     }
 
     @Override
@@ -127,7 +133,7 @@ public class ProductService implements IProductService {
         return productRepository.findByCategoryName(category);
     }
 
-//    @Override
+    // @Override
     @Transactional(readOnly = true)
     public List<Product> getProductsByCategoryId(Integer category) {
         return productRepository.findByCategoryId(category);
@@ -200,18 +206,19 @@ public class ProductService implements IProductService {
         // Extract the first image URL
         String firstImageUrl = product.getImages().stream()
                 .map(Image::getUrl) // Map Image objects to their URLs
-                .findFirst()        // Get the first URL, if present
-                .orElse(null);      // Return null if no images are present
-    
+                .findFirst() // Get the first URL, if present
+                .orElse(null); // Return null if no images are present
+
         // Set the first image URL to the DTO
         productDto.setImageUrl(firstImageUrl);
-    
+
         return productDto;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
-    public List<Product> filterProducts(String category, String brand, BigDecimal minPrice, BigDecimal maxPrice, String size, String color) {
+    public List<Product> filterProducts(String category, String brand, BigDecimal minPrice, BigDecimal maxPrice,
+            String size, String color) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Product> query = cb.createQuery(Product.class);
         Root<Product> product = query.from(Product.class);
