@@ -2,10 +2,8 @@ package com.dailycodework.dreamshops.repository;
 
 import com.dailycodework.dreamshops.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 //public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -37,5 +35,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Get products sorted by date (newest first)
     // List<Product> findTop8ByOrderByDateDesc();
     List<Product> findTop8ByOrderByDateDesc();
-
+    List<Product> findByNameContainingIgnoreCase(String name); 
+    
 }
