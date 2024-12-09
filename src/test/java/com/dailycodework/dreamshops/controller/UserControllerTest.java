@@ -1,19 +1,19 @@
 package com.dailycodework.dreamshops.controller;
 
-import com.dailycodework.dreamshops.dto.UserDto;
+import com.dailycodework.dreamshops.dto.UserSignIn;
+import com.dailycodework.dreamshops.dto.UserSignUp;
 import com.dailycodework.dreamshops.exceptions.AlreadyExistsException;
-import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
-import com.dailycodework.dreamshops.model.User;
-import com.dailycodework.dreamshops.request.CreateUserRequest;
-import com.dailycodework.dreamshops.request.UserUpdateRequest;
-import com.dailycodework.dreamshops.response.ApiResponse;
+import com.dailycodework.dreamshops.response.AuthenticationResponse;
 import com.dailycodework.dreamshops.service.user.IUserService;
+import com.dailycodework.dreamshops.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -32,125 +32,152 @@ class UserControllerTest {
     }
 
     @Test
-    void testGetUserById_Success() {
-        Long userId = 1L;
-        User user = new User();
-        UserDto userDto = new UserDto();
-
-        when(userService.getUserById(userId)).thenReturn(user);
-        when(userService.convertUserToDto(user)).thenReturn(userDto);
-
-        ResponseEntity<ApiResponse> response = userController.getUserById(userId);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Success", response.getBody().getMessage());
-        assertEquals(userDto, response.getBody().getData());
-    }
-
-    @Test
-    void testGetUserById_NotFound() {
-        Long userId = 1L;
-
-        when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException("User not found"));
-
-        ResponseEntity<ApiResponse> response = userController.getUserById(userId);
-
-        assertEquals(404, response.getStatusCodeValue());
-        assertEquals("User not found", response.getBody().getMessage());
-        assertEquals(null, response.getBody().getData());
-    }
-
-    @Test
-    void testCreateUser_Success() {
+    void testSignUp_Success() {
         // Prepare test data
-        CreateUserRequest request = new CreateUserRequest();
-        User user = new User();  // This is the actual object that will be returned from the controller
-        user.setId(1L); // Example ID, you can set other properties as well if needed
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setEmail("john.doe@example.com");
+        UserSignUp request = new UserSignUp();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setEmail("john.doe@example.com");
+        request.setPassword("password123");
 
-        // Mock the service methods
-        when(userService.createUser(request)).thenReturn(user);
+        AuthenticationResponse authResponse = AuthenticationResponse.builder()
+                .token("sample-token")
+                .userId(1L)
+                .role(Role.USER)
+                .build();
+
+        // Mock the service method
+        when(userService.userSignUp(request)).thenReturn(authResponse);
 
         // Call the controller method
-        ResponseEntity<ApiResponse> response = userController.createUser(request);
+        ResponseEntity<AuthenticationResponse> response = userController.signUp(request);
 
-        // Assert the response status and message
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Create User Success!", response.getBody().getMessage());
-
-        // Assert that the response body contains the same user object
-        assertEquals(user, response.getBody().getData());  // Compare User objects directly
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(authResponse, response.getBody());
     }
 
     @Test
-    void testCreateUser_AlreadyExists() {
-        CreateUserRequest request = new CreateUserRequest();
+    void testSignUp_AlreadyExists() {
+        // Prepare test data
+        UserSignUp request = new UserSignUp();
+        request.setEmail("john.doe@example.com");
 
-        when(userService.createUser(request)).thenThrow(new AlreadyExistsException("User already exists"));
+        // Mock the service method to throw AlreadyExistsException
+        when(userService.userSignUp(request)).thenThrow(new AlreadyExistsException("User already exists"));
 
-        ResponseEntity<ApiResponse> response = userController.createUser(request);
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.signUp(request);
 
-        assertEquals(409, response.getStatusCodeValue());
-        assertEquals("User already exists", response.getBody().getMessage());
-        assertEquals(null, response.getBody().getData());
+        // Assertions
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     }
 
     @Test
-    void testUpdateUser_Success() {
-        Long userId = 1L;
-        UserUpdateRequest request = new UserUpdateRequest();
-        User user = new User();
-        UserDto userDto = new UserDto();
+    void testSignIn_Success() {
+        // Prepare test data
+        UserSignIn request = new UserSignIn();
+        request.setEmail("john.doe@example.com");
+        request.setPassword("password123");
 
-        when(userService.updateUser(request, userId)).thenReturn(user);
-        when(userService.convertUserToDto(user)).thenReturn(userDto);
+        AuthenticationResponse authResponse = AuthenticationResponse.builder()
+                .token("sample-token")
+                .userId(1L)
+                .role(Role.USER)
+                .build();
 
-        ResponseEntity<ApiResponse> response = userController.updateUser(request, userId);
+        // Mock the service method
+        when(userService.userSignIn(request)).thenReturn(authResponse);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Update User Successul!", response.getBody().getMessage());
-        assertEquals(userDto, response.getBody().getData());
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.signIn(request);
+
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(authResponse, response.getBody());
     }
 
     @Test
-    void testUpdateUser_NotFound() {
-        Long userId = 1L;
-        UserUpdateRequest request = new UserUpdateRequest();
+    void testSignIn_Unauthorized() {
+        // Prepare test data
+        UserSignIn request = new UserSignIn();
+        request.setEmail("john.doe@example.com");
+        request.setPassword("wrongpassword");
 
-        when(userService.updateUser(request, userId)).thenThrow(new ResourceNotFoundException("User not found"));
+        // Mock the service method to throw ResponseStatusException
+        when(userService.userSignIn(request)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        ResponseEntity<ApiResponse> response = userController.updateUser(request, userId);
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.signIn(request);
 
-        assertEquals(404, response.getStatusCodeValue());
-        assertEquals("User not found", response.getBody().getMessage());
-        assertEquals(null, response.getBody().getData());
+        // Assertions
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     @Test
-    void testDeleteUser_Success() {
-        Long userId = 1L;
+    void testAdminSignUp_Success() {
+        // Prepare test data
+        UserSignUp request = new UserSignUp();
+        request.setFirstName("Admin");
+        request.setLastName("User");
+        request.setEmail("admin@example.com");
+        request.setPassword("adminpassword");
 
-        doNothing().when(userService).deleteUser(userId);
+        AuthenticationResponse authResponse = AuthenticationResponse.builder()
+                .token("admin-token")
+                .userId(1L)
+                .role(Role.ADMIN)
+                .build();
 
-        ResponseEntity<ApiResponse> response = userController.deleteUser(userId);
+        // Mock the service method
+        when(userService.adminSignUp(request)).thenReturn(authResponse);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Delete User Success!", response.getBody().getMessage());
-        assertEquals(null, response.getBody().getData());
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.adminSignUp(request);
+
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(authResponse, response.getBody());
     }
 
     @Test
-    void testDeleteUser_NotFound() {
-        Long userId = 1L;
+    void testAdminSignIn_Success() {
+        // Prepare test data
+        UserSignIn request = new UserSignIn();
+        request.setEmail("admin@example.com");
+        request.setPassword("adminpassword");
 
-        doThrow(new ResourceNotFoundException("User not found")).when(userService).deleteUser(userId);
+        AuthenticationResponse authResponse = AuthenticationResponse.builder()
+                .token("admin-token")
+                .userId(1L)
+                .role(Role.ADMIN)
+                .build();
 
-        ResponseEntity<ApiResponse> response = userController.deleteUser(userId);
+        // Mock the service method
+        when(userService.adminSignIn(request)).thenReturn(authResponse);
 
-        assertEquals(404, response.getStatusCodeValue());
-        assertEquals("User not found", response.getBody().getMessage());
-        assertEquals(null, response.getBody().getData());
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.adminSignIn(request);
+
+        // Assertions
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(authResponse, response.getBody());
+    }
+
+    @Test
+    void testAdminSignIn_Unauthorized() {
+        // Prepare test data
+        UserSignIn request = new UserSignIn();
+        request.setEmail("admin@example.com");
+        request.setPassword("wrongpassword");
+
+        // Mock the service method to throw ResponseStatusException
+        when(userService.adminSignIn(request)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        // Call the controller method
+        ResponseEntity<AuthenticationResponse> response = userController.adminSignIn(request);
+
+        // Assertions
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

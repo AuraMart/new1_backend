@@ -1,68 +1,57 @@
 package com.dailycodework.dreamshops.controller;
-import com.dailycodework.dreamshops.dto.UserDto;
+import com.dailycodework.dreamshops.dto.UserSignIn;
+import com.dailycodework.dreamshops.dto.UserSignUp;
 import com.dailycodework.dreamshops.exceptions.AlreadyExistsException;
-import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
-import com.dailycodework.dreamshops.model.User;
-import com.dailycodework.dreamshops.request.CreateUserRequest;
-import com.dailycodework.dreamshops.request.UserUpdateRequest;
-import com.dailycodework.dreamshops.response.ApiResponse;
+import com.dailycodework.dreamshops.response.AuthenticationResponse;
 import com.dailycodework.dreamshops.service.user.IUserService;
-import com.dailycodework.dreamshops.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-@CrossOrigin("http://localhost:3000")
+
 @RequiredArgsConstructor
-
 @RestController
 @RequestMapping("${api.prefix}/users")
 public class UserController {
     @Autowired
     private final IUserService userService;
 
-    @GetMapping("/{userId}/user")
-    public ResponseEntity<ApiResponse> getUserById(@PathVariable Long userId) {
+    @PostMapping("/signup")
+    public ResponseEntity<AuthenticationResponse> signUp(@RequestBody UserSignUp request) {
+        System.out.println(request);
         try {
-            User user = userService.getUserById(userId);
-            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Success", userDto));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
-        }
-    }
-
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponse> createUser(@RequestBody CreateUserRequest request) {
-        try {
-
-            User user = userService.createUser(request);
-//            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Create User Success!", user));
+            return ResponseEntity.ok(userService.userSignUp(request));
         } catch (AlreadyExistsException e) {
-            return ResponseEntity.status(CONFLICT).body(new ApiResponse(e.getMessage(), null));
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
-    @PutMapping("/{userId}/update")
-    public ResponseEntity<ApiResponse> updateUser(@RequestBody UserUpdateRequest request, @PathVariable Long userId) {
+
+    @PostMapping("/signin")
+    public ResponseEntity<AuthenticationResponse> signIn(@RequestBody UserSignIn request) {
         try {
-            User user = userService.updateUser(request, userId);
-            UserDto userDto = userService.convertUserToDto(user);
-            return ResponseEntity.ok(new ApiResponse("Update User Success!", userDto));
-        } catch (ResourceNotFoundException e) {
-           return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.ok(userService.userSignIn(request));
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
-    @DeleteMapping("/{userId}/delete")
-    public ResponseEntity<ApiResponse> deleteUser(@PathVariable Long userId) {
+
+
+    @PostMapping("/admin/signup")
+    public ResponseEntity<AuthenticationResponse> adminSignUp(@RequestBody UserSignUp request) {
+        return ResponseEntity.ok(userService.adminSignUp(request));
+    }
+
+
+    @PostMapping("/admin/signin")
+    public ResponseEntity<AuthenticationResponse> adminSignIn(@RequestBody UserSignIn request) {
         try {
-            userService.deleteUser(userId);
-            return ResponseEntity.ok(new ApiResponse("Delete User Success!", null));
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse(e.getMessage(), null));
+            return ResponseEntity.ok(userService.adminSignIn(request));
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
 }
