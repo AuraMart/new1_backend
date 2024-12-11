@@ -146,20 +146,28 @@
 
 package com.dailycodework.dreamshops.service.order;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dailycodework.dreamshops.dto.OrderDto;
+import com.dailycodework.dreamshops.dto.OrderItemDto;
+import com.dailycodework.dreamshops.dto.OrderRequest;
 import com.dailycodework.dreamshops.enums.OrderStatus;
+import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
 import com.dailycodework.dreamshops.model.Order;
 import com.dailycodework.dreamshops.model.OrderItem;
 import com.dailycodework.dreamshops.model.Product;
 import com.dailycodework.dreamshops.model.User;
-import com.dailycodework.dreamshops.dto.OrderRequest;
 import com.dailycodework.dreamshops.repository.OrderRepository;
 import com.dailycodework.dreamshops.repository.ProductRepository;
 import com.dailycodework.dreamshops.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Service
 public class OrderService {
@@ -199,6 +207,36 @@ public class OrderService {
         // Save the order
         return orderRepository.save(order);
     }
+
+    public List<OrderDto> getUserOrders(Long userId) throws ResourceNotFoundException {
+        List<Order> orders = orderRepository.findByUserId(userId);
+
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for user with ID: " + userId);
+        }
+
+        return orders.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    private OrderDto mapToDto(Order order) {
+    OrderDto orderDto = new OrderDto();
+    orderDto.setId(order.getOrderId());
+    orderDto.setUserId(order.getUser().getId()); 
+    orderDto.setOrderDate(LocalDateTime.of(order.getOrderDate(), LocalTime.MIDNIGHT)); 
+    orderDto.setTotalAmount(order.getTotalAmount());
+    orderDto.setStatus(order.getOrderStatus().name());
+
+    List<OrderItemDto> items = order.getOrderItems().stream().map(orderItem -> {
+        OrderItemDto itemDto = new OrderItemDto();
+        itemDto.setProductName(orderItem.getProduct().getName());
+        itemDto.setQuantity(orderItem.getQuantity());
+        itemDto.setPrice(orderItem.getPrice());
+        return itemDto;
+    }).collect(Collectors.toList());
+
+    orderDto.setItems(items);
+    return orderDto;
+}
 
 
 }

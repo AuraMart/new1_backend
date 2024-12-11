@@ -83,6 +83,11 @@ import com.dailycodework.dreamshops.service.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.dailycodework.dreamshops.exceptions.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
+import com.dailycodework.dreamshops.dto.OrderDto;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}")
@@ -100,6 +105,16 @@ public class OrderController {
             return ResponseEntity.status(500).body(new ApiResponse("Failed to place order!", e.getMessage()));
         }
     }
+
+    @GetMapping("/{userId}/order")
+   public ResponseEntity<ApiResponse> getUserOrders(@PathVariable Long userId) {
+       try {
+           List<OrderDto> order = orderService.getUserOrders(userId);
+           return ResponseEntity.ok(new ApiResponse("Item Order Success!", order));
+       } catch (ResourceNotFoundException e) {
+           return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse("Oops!", e.getMessage()));
+       }
+   }
 
 
 }
